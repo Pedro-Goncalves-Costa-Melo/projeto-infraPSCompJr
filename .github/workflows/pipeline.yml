@@ -1,0 +1,36 @@
+name: CI/CD Infra Pipeline
+
+on:
+  push:
+    branches: [ "main" ] 
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  # Job 1: TESTAR (CI)
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Baixar o código
+      uses: actions/checkout@v3
+
+    - name: Instalar Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Instalar dependências
+      run: npm install
+
+    - name: Rodar Testes
+      run: npm test
+
+  deploy:
+    needs: build-and-test 
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' 
+    
+    steps:
+    - name: Acionar Deploy no Render
+      run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
